@@ -1,0 +1,4 @@
+Hive Commands
+
+describe <tableName>
+describe extended <tableName>
