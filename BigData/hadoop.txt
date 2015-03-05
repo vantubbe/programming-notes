@@ -1,8 +1,0 @@
-Hive Commands
-
-show databases
-show tables
-use <databasename>
-describe <tablename>
-describe extended <tableName>
-create database <databasename>
