@@ -1,0 +1,15 @@
+--------------------
+--GIT
+--------------------
+---------Start a new repo------------
+git init
+git add .
+git commit -m "Initial commit"
+
+---------Push a repo to github
+git remote add origin https://github.com/<username>/sample_app.git
+git push -u origin master
+git status #Check status
+git checkout -b static-pages #create branch
+
+

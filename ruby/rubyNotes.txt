@@ -1,0 +1,69 @@
+----------------------
+--General Ruby
+----------------------
+irb #start ruby console (similar to immediate window)
+
+----------------------
+--Gems
+----------------------
+bundle install #install all gems in the gemfile
+bundle update #update gemfile???
+gem list #list all installed gems for current project
+gem install GEMNAME #install specific gem. Better to put in gemfile and do bundle install
+
+---------------------------
+--Rails
+---------------------------
+
+------scaffolding
+rails generate controller FooBars baz quux #generate controller with actions
+rails destroy  controller FooBars baz quux #destroy controller
+rails generate model Foo bar:string baz:integer #gen model with members
+rails generate integration_test static_pages 
+
+rails server --start rails server
+rails console --sandbox #open rails console using sandbox db (changes reverted on exit)
+
+--migration
+rails generate migration name_of_your_migration_task #generate empty migration
+rails generate migration name_of_your_migration_task_to_tablename field_to_add:<type>, ... #generate migration to table with parameters denoting column name and type
+
+--------------------------
+--Rake (ruby make)
+--------------------------
+
+rake db:migrate 
+rake db:rollback
+rake db:migrate VERSION=0
+bundle exec rake test:prepare #???
+rake db:migrate RAILS_ENV=test
+rake db:reset #clear it out
+rake routes #view all valid url paths
+
+---------------------------
+--Testing
+--------------------------
+
+rspec /spec #run all tests
+bundle exec rspec spec/requests/static_pages_spec.rb #run specific tests from file
+
+---------Guard---------------
+bundle exec guard init rspec #initialize guard file
+guard #start guard
+
+---------Cucumber------------
+rails generate cucumber:install
+cucumber features/
+
+----------------------
+--HEROKU
+----------------------
+heroku create #create a heroku site (do from app directory)
+git push heroku master #push to heroku
+heroku pg:reset DATABASE
+heroku run rake db:migrate #run db migration on heroku
+heroku run rake db:populate
+heroku open #open a browser pointed to your site
+heroku logs #view logs
+heroku run console #rails console on heroku
+heroku restart

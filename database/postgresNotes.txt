@@ -1,0 +1,7 @@
+-----------------------------
+--Postgres
+---------------------------
+sudo -u postgres psql #login to postgres
+\du #list users
+\list #list databases
+\dt #list tables in current db
