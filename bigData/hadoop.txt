@@ -1,4 +1,4 @@
-Hive Commands
+-----------Hive Commands
 
 show databases
 show tables
@@ -6,3 +6,65 @@ use <databasename>
 describe <tablename>
 describe extended <tableName>
 create database <databasename>
+create table <table_name> -hive managed table (will move data loaded into hive warehouse)
+create external table <table_name> -externally managed table on hdfs
+explain -will tell you about what hive is doing with a query
+
+
+-------------Complex column types
+Array<primitive_type>
+MAP<primitive_type,any_type> //a key-value
+STRUCT<name:type,name:type,name:type,...> //struct
+UNIONTYPE<int,string,ARRAY<string>> //column value can be any of these types.
+
+example select using complex types
+
+SELECT participants[0], //array
+	releaseDates["usa"] //map
+	studio_address.zip //struct
+	complex_col["someKey"].somePropertyOnAStructThatIsAMap["fav_color"] //complex type using chaining
+
+Cast('12' AS INT) //returns null if cant cast
+
+--------------Partitioning
+Keep in mind that hadoop works really well with large file sizes.  If you partition like crazy, you make hadoop manage more blocks,
+use more mappers, and lose performance. Keep block size high, and partitions low.
+
+
+-------------------Partitioning managed partitions
+
+CREATE [EXTERNAL] TABLE ...
+PARTITIONED BY(dt STRING, applicationType STRING)  //horizontal partitioning on multiple columns						
+STORED AS TEXTFILE
+LOCATION ''  //optional - Good idea to provide this, if you do, you can create folders manually following hive's partition directory structure (must do this) 
+		and then have hive sync with the following command.
+
+MSCK REPAIR TABLE <table_name> - it will scan folders in the location following the directory structure (d=23,y=1223, etc)
+
+LOAD DATA INPATH 'somepath'
+INTO TABLE page_vies
+PARTITION(dt='2013-01-01',applicationType='PC')
+
+ALTER TABLE page_views ADD PARTITION(dt='2013-09-09', applicationType='iphone') //there will be a folder created named dt=2013-09-09 and another folder within called applicationType=iphone
+										//you must follow this syntax when creating partitions manually, and ensure the correct data is loaded into it's partition
+LOCATION '/somewhere/on/hdfs'
+LOCATION 'hdfs://NameNode/somewhere/on/hdfs'
+
+--adding multiple partitions
+ALTER TABLE page_views ADD IF NOT EXISTS
+Partition(...) 
+Partition(...)
+
+------------------Dynamic Partition Inserts
+
+FROM <tableName> src
+INSERT OVERWRITE TABLE views_stg PARTITION (applicationtype='web',dt,page)  //Note the names of the columns are used. Note static ones come first. Dynamic cols must be in same order as defined by original table.
+SELECT src.col1,src.col2, src.dt,src.page WHERE applicationtype = 'web' //Hive will create partitions based on the values pulled from the dt and page columns
+
+
+
+----------------multiple inserts
+FROM from_statement
+INSERT INTO TABLE tableName [Partition (x=10,y=3)[IF NOT EXISTS]] select_statement
+INSERT OVERWRITE TABLE tableName2 [Partition(x=10,y=3)] select_statement2
+
