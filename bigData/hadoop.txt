@@ -68,3 +68,84 @@ FROM from_statement
 INSERT INTO TABLE tableName [Partition (x=10,y=3)[IF NOT EXISTS]] select_statement
 INSERT OVERWRITE TABLE tableName2 [Partition(x=10,y=3)] select_statement2
 
+-----------------Hive Query Language
+
+-Grouping Sets
+Select a,b,c SUM(d) FROM t1 GROUP BY a,b WITH CUBE
+Translates to...
+Select a,b,c SUM(d) FROM t1 GROUP BY a,b,c GROUPING SETS
+((a,b,c),(a,b),(b,c),(a,c),a,b,c,())  --all possible combination
+
+-Rollup
+Select a,b,c,SUM(d) FROM t1 GROUP BY a,b WITH ROLLUP --makes groupings assuming order of select columns. Hierarchy a is parent of b, b is parent of c
+Translates to...
+Select a,b,c,SUM(d) FROM t1 GROUP BY a,b,c GROUPING SETS
+((a,b,c),(a,b),a,())
+
+---------Functions
+collection functions
+size(Map<k.v>)
+map_keys(Map<k,v>)
+map_values(Map<k,v>)
+array_contains(a,'test') FROM t1
+
+Having -filter on aggregate
+
+-----Sorting 
+ORDER BY (Forces hadoop to use a reducer) and it forces a single reducer! Since global sorting 
+SORT BY (uses multiple reduces, so each output is locally sorted, but not globally sorted)
+
+--controlling data flow
+What if you want to control which data goes to each reducer
+
+DISTRIBUTE BY y
+--The default partioner (which controls which map results go to which reducer) will use key.  Distribute by will let you select a different column to distribute the results to the reducers.
+--May also want to assure that all of a user's records go to only one reducer
+
+----CLI Command Line Interface
+
+hive -e 'select a from t1 where c = 15'  --run hive query directly from command line with -e
+hive -S 'select a from t1 where c = 15' > results.txt --silent mode (only show results, no status messages)
+hive -f /some/place/get-data.txt --execute sql from file
+hive -v --verbose
+hive -d --set a variable in hivevar
+
+-----------Variable Substitutions
+hivevar -store user defined variables
+hiveconf -configuration
+system
+end
+
+examples
+hive -d srctable=movies --first way to set variable (this command will launch hive)
+hive> set hivevar:cond = 123; --second way (from within hive)
+hive> select a from ${hivevar:srctable}
+	where a=${hivevar:cond}
+
+------------Bucketing 
+Tables or partitions can be bucketed
+
+CREATE TABLE t1 (col1,col2,col3)
+CLUSTERED BY (col2) INTO 256 BUCKETS
+
+CREATE TABLE t1(col1,col2,col3)
+PARTITIONED BY(dt string)
+CLUSTERED BY (col2) SORTED BY (col3) INTO 64 BUCKETS  -you can sort the data as it is inserted into the table, this will help read performance, but write will be slower
+				--generally that's okay as hadoop is write once, read many
+
+Hive does not control or enforce bucketing of data loaded
+set hive.enforce.bucketing=true
+INSERT OVERWRITE TABLE t1 
+SELECT a,b,c FROM t2
+
+-----Sampling data out of a particular bucket
+
+Select * from source TABLESAMPLE(BUCKET x OUT OF y [ON colname]);
+
+-----Block Sampling 
+SELECT * FROM source TABLESAMPLE(n PERCENT)
+SELECT * FROM source TABLESAMPLE(90M)
+
+------------------------------JOINS-----------------------------
+
+ONLY EQUALITY JOINS
